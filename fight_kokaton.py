@@ -162,12 +162,32 @@ class Score:
         screen.blit(self.img, self.rct)
 
 
+class Explosion:
+    """
+    爆発エフェクトに関するクラス
+    """
+
+    def __init__(self, obj: "Bomb"):
+        self.imgs = [pg.image.load("fig/explosion.gif"),
+                     pg.transform.flip(pg.image.load("fig/explosion.gif"), True, True)]
+        self.rct = self.imgs[0].get_rect()
+        self.rct.center = obj.rct.center
+        self.life = 20
+
+    def update(self, screen: pg.Surface):
+        self.life -= 1
+        if self.life > 0:
+            self.imgs.reverse()
+            screen.blit(self.imgs[0], self.rct)
+
+
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load("fig/pg_bg.jpg")
     bird = Bird((300, 200))
     score = Score()
+    exps = []
     bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]
     beams = []
     clock = pg.time.Clock()
@@ -182,20 +202,27 @@ def main():
         screen.blit(bg_img, [0, 0])
 
         for i, bomb in enumerate(bombs):
-            if bomb is not None:
-                for j, beam in enumerate(beams):
-                    if bomb is not None:
-                        if beam.rct.colliderect(bomb.rct):
-                            bird.change_img(6, screen)
-                            for b in bombs:
-                                b.update(screen)
-                            pg.display.update()
-                            time.sleep(1)
-                            bombs[i] = None
-                            beams[j] = None
-                            bird.img = Bird.imgs[(+5, 0)]
-                            score.value += 1
-                            break
+            if bomb is None:
+                continue
+            for j, beam in enumerate(beams):
+                if beam is None:
+                    continue
+                if beam.rct.colliderect(bomb.rct):
+                    bird.change_img(6, screen)
+                    for b in bombs:
+                        if b is not None:
+                            b.update(screen)
+
+                    pg.display.update()
+                    time.sleep(1)
+
+                    exps.append(Explosion(bombs[i]))
+
+                    bombs[i] = None
+                    beams[j] = None
+                    bird.img = Bird.imgs[(+5, 0)]
+                    score.value += 1
+                    break
 
         bombs = [bomb for bomb in bombs if bomb is not None]
         for bomb in bombs:
@@ -216,6 +243,11 @@ def main():
 
         for bomb in bombs:
             bomb.update(screen)
+
+        exps = [exp for exp in exps if exp.life > 0]
+        for exp in exps:
+            exp.update(screen)
+
         score.update(screen)
         pg.display.update()
         tmr += 1
