@@ -99,8 +99,9 @@ class Beam:
          引数 bird：ビームを放つこうかとん（Birdインスタンス）
          """
         self.vx, self.vy = bird.dire
-        self.img = pg.transform.rotozoom(pg.image.load("fig/beam.png"),
-                                         pg.math.Vector2(1, 0).angle_to(pg.math.Vector2(self.vx, -self.vy)), 0.9)
+        img0 = pg.image.load("fig/beam.png")
+        self.img = pg.transform.rotozoom(img0,
+                   pg.math.Vector2(1, 0).angle_to(pg.math.Vector2(self.vx, -self.vy)), 0.9)
         self.rct = self.img.get_rect()
         self.rct.centerx = bird.rct.centerx + bird.rct.width * self.vx//5
         self.rct.centery = bird.rct.centery + bird.rct.height * self.vy//5
